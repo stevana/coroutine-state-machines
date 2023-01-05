@@ -19,23 +19,49 @@ maintainer:         stevana@users.noreply.github.com
 -- A copyright notice.
 -- copyright:
 -- category:
-extra-source-files: CHANGELOG.md
+extra-source-files:
+  CHANGELOG.md
+  LICENSE
 
 library
-    exposed-modules:  Coroutine
+  exposed-modules:
+    AwaitingClients
+    Coroutine
+    Event
+    EventLoop
+    EventQueue
+    FileSystem
+    HttpServer
+    KeyValueApp
+    StateMachine
+    Suspension
 
-    -- Modules included in this library but not exported.
-    -- other-modules:
+  build-depends:
+    , async
+    , base          ^>=4.15.1.0
+    , bytestring
+    , containers
+    , http-types
+    , mtl
+    , stm
+    , transformers
+    , wai
+    , warp
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
-    build-depends:    base ^>=4.15.1.0, mtl, containers
-    hs-source-dirs:   src
-    default-language: Haskell2010
+  hs-source-dirs:   src
+  default-language: Haskell2010
 
 test-suite test
-    default-language: Haskell2010
-    type:             exitcode-stdio-1.0
-    hs-source-dirs:   test
-    main-is:          MyLibTest.hs
-    build-depends:    base ^>=4.15.1.0
+  default-language: Haskell2010
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          MyLibTest.hs
+  build-depends:    base
+
+executable app
+  default-language: Haskell2010
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , coroutine-state-machines
