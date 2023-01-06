@@ -57,5 +57,5 @@ parseMaybeInt err = extract . parseOutput err
 
 kvReset :: KeyValueClient -> IO ()
 kvReset kvc = do
-  resp <- httpLbs (initReq (kvcPort kvc)) { method = "DELETE" } (kvcManager kvc)
-  return (parseUnit "kvReset" resp)
+  _resp <- httpLbs (initReq (kvcPort kvc)) { method = "DELETE" } (kvcManager kvc)
+  return ()

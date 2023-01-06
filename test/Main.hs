@@ -244,6 +244,7 @@ linearisable step0 model0 = any' (go model0)
         (model', resp') = step0 model cmd
       in
         resp == resp' && any' (go model') ts
+
     any' :: (a -> Bool) -> [a] -> Bool
     any' _p [] = True
     any'  p xs = any p xs

@@ -19,7 +19,7 @@ import Suspension
 
 ------------------------------------------------------------------------
 
-eventLoop :: forall s i o. Monoid s => SM s i o -> s -> Codec i o -> Int -> IO ()
+eventLoop :: forall s i o. SM s i o -> s -> Codec i o -> Int -> IO ()
 eventLoop sm s0 codec port = do
   evQueue <- newTBQueueIO 4096
   fsQueue <- newTBQueueIO 4096
@@ -38,13 +38,13 @@ eventLoop sm s0 codec port = do
 
       let handle cid e =
             case e of
-              Left req@(Request (fsReq, _i, _s) k) -> do
+              Left req@(Request (fsReq, _i) k) -> do
                 let (sid, susps') = addSuspension susps req
                 atomically (writeTBQueue fsQueue (cid, sid, fsReq))
                 go evQueue fsQueue awaitingClients susps' s
               Right (o, s') -> do
                 respondToAwaitingClient awaitingClients cid (cEncode codec o)
-                go evQueue fsQueue awaitingClients susps (s' <> s) -- Hmm?
+                go evQueue fsQueue awaitingClients susps s'
 
       case ev of
         ClientRequest cid bs -> do
@@ -57,7 +57,7 @@ eventLoop sm s0 codec port = do
               handle cid e
         FileSystemResponse cid sid resp -> do
           let (req, susps') = resumeSuspension susps sid
-          e <- resumeSM req resp
+          e <- resumeSM s req resp
           handle cid e
         Reset -> go evQueue fsQueue awaitingClients susps s0
         Exit -> return ()
