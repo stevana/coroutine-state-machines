@@ -20,14 +20,11 @@ import EventQueue
 
 ------------------------------------------------------------------------
 
-jOURNAL_FILE :: FilePath
-jOURNAL_FILE = "/tmp/journal.txt"
-
 type FSQueue = TBQueue (Int, Int, FSReq)
 
-fsWorker :: FSQueue -> EventQueue -> IO ()
-fsWorker fsQueue evQueue = do
-  h <- openFile jOURNAL_FILE AppendMode
+fsWorker :: Int -> FSQueue -> EventQueue -> IO ()
+fsWorker port fsQueue evQueue = do
+  h <- openFile ("/tmp/key-value-store-" ++ show port ++ ".journal") AppendMode
   hSetBuffering h LineBuffering
   go h
   where

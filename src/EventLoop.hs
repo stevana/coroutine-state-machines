@@ -28,7 +28,7 @@ eventLoop sm s0 codec port = do
   withAsync (runHttp port ready evQueue awaitingClients) $ \ha -> do
     link ha
     takeMVar ready
-    withAsync (fsWorker fsQueue evQueue) $ \fa -> do
+    withAsync (fsWorker port fsQueue evQueue) $ \fa -> do
       link fa
       go evQueue fsQueue awaitingClients noSuspensions s0
   where
