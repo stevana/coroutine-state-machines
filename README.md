@@ -51,7 +51,7 @@ The state machine for the key-value store example looks like this:
 data Input = Write String Int | Read String
   deriving stock (Show, Read)
 
-data Output = Ok | Result Int
+data Output = Ok | Result (Maybe Int)
   deriving stock Show
 
 sm :: SM (Map String Int) Input Output
@@ -64,7 +64,7 @@ sm = do
       return Ok
     Read k -> do
       m <- get
-      return (Result (m Map.! k))
+      return (Result (m Map.!? k))
 ```
 
 Where `fsAppend` appends the key-value pair to a file, so that we can recover in
@@ -75,27 +75,34 @@ will suspend using a coroutine monad, yielding control back to the event loop
 which feeds it inputs, the event loop will enqueue the I/O action to a separate
 thread that deals with I/O and continue feeding the state machine new inputs,
 until the I/O thread processes a result, at which point the state machine will
-be resumed.
-
-There's a question of which state should we resume with? The old one, which we
-suspended with? Or the new one, which was produced by processing more recent
-inputs? Neither choice seems to work in the general case. Perhaps we might want
-to give the application developer the choice? Another option, which we've
-implemented currently, is to require the state to be a monoid, resume with the
-old state but then `mappend` the resulting state with the new state. More
-testing is still needed to ensure that this is sound.
-
-Another solution might be to suspend and let another state machine run, but
-don't process any new inputs for the state machine that is waiting for the I/O.
-This solution doesn't have the dilemma about which state to resume with, but
-it's also not as parallel...
+be resumed with the latest state.
 
 ## Contributing
 
 Any feedback, comments or suggestions are most welcome!
 
-In particular if you know how to solve this problem in general, or for some
-interesting special case.
+In particular if you know how to solve this problem in a different or better
+way.
+
+A potential source of confusion and bugs might be the fact that once we resume
+the state might not be the same as it was before we suspended. It's not clear to
+me how big of a problem this is in practice, or if anything can be done about it
+without sacrificing either the "sequential feel" or the parallelism?
+
+One possible generalisation that seems feasible is to not suspend immediately
+upon the I/O action, but rather merely return a "future" which we later can
+`await` for. This would allow us to do suspend and do multiple I/O actions
+before resuming, something like:
+
+```haskell
+  a1 <- fsAppend k v
+  a2 <- someOtherIOAction
+  awaitBoth a1 a2 -- or awaitEither a1 a2
+```
+
+Arguably the await makes it more clear where the suspension and resumption
+happen, which could help against the confusion regarding that the state might
+change.
 
 ## See also
 
