@@ -26,6 +26,7 @@ extra-source-files:
 library
   exposed-modules:
     AwaitingClients
+    Codec
     Coroutine
     Event
     EventLoop
@@ -33,6 +34,7 @@ library
     FileSystem
     HttpServer
     KeyValueApp
+    KeyValueClient
     StateMachine
     Suspension
 
@@ -41,6 +43,7 @@ library
     , base          ^>=4.15.1.0
     , bytestring
     , containers
+    , http-client
     , http-types
     , mtl
     , stm
@@ -55,8 +58,17 @@ test-suite test
   default-language: Haskell2010
   type:             exitcode-stdio-1.0
   hs-source-dirs:   test
-  main-is:          MyLibTest.hs
-  build-depends:    base
+  main-is:          Main.hs
+  build-depends:
+    , async
+    , base
+    , containers
+    , coroutine-state-machines
+    , QuickCheck
+    , random
+    , stm
+    , tasty
+    , tasty-quickcheck
 
 executable app
   default-language: Haskell2010

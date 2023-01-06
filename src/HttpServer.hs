@@ -17,9 +17,6 @@ import EventQueue
 
 ------------------------------------------------------------------------
 
-pORT :: Int
-pORT = 8080
-
 app :: EventQueue -> AwaitingClients -> Application
 app evQueue awaitingClients req respond =
   case requestMethod req of
@@ -34,7 +31,15 @@ app evQueue awaitingClients req respond =
           putStrLn "Client response timed out..."
           respond (responseLBS status500 [] "Timeout due to overload or bug")
         Just bs -> respond (responseLBS status200 [] bs)
+    "DELETE" -> do
+      atomically (writeTBQueue evQueue Reset)
+      respond (responseLBS status200 [] "")
     _otherwise -> respond (responseLBS status400 [] "Unsupported method")
 
-runHttp :: EventQueue -> AwaitingClients -> IO ()
-runHttp evQueue awaitingClients = run pORT (app evQueue awaitingClients)
+runHttp :: Int -> MVar () -> EventQueue -> AwaitingClients -> IO ()
+runHttp port ready evQueue awaitingClients = runSettings settings (app evQueue awaitingClients)
+  where
+    settings
+      = setPort port
+      $ setBeforeMainLoop (putMVar ready ())
+      $ defaultSettings

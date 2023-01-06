@@ -3,4 +3,4 @@ module Main where
 import KeyValueApp
 
 main :: IO ()
-main = keyValueMain
+main = keyValueMain 8080

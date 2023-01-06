@@ -2,13 +2,14 @@
 
 module EventLoop where
 
-import Data.ByteString.Lazy (ByteString)
+import Control.Concurrent.MVar
 import Control.Concurrent.Async
 import Control.Concurrent.STM
 import Control.Concurrent.STM.TBQueue
 
 import AwaitingClients
 import Event
+import Codec
 import Coroutine
 import EventQueue
 import HttpServer
@@ -18,14 +19,15 @@ import Suspension
 
 ------------------------------------------------------------------------
 
-eventLoop :: forall s i o. Monoid s
-          => SM s i o -> s -> (ByteString -> Maybe i) -> (o -> ByteString) -> IO ()
-eventLoop sm s0 decode encode = do
+eventLoop :: forall s i o. Monoid s => SM s i o -> s -> Codec i o -> Int -> IO ()
+eventLoop sm s0 codec port = do
   evQueue <- newTBQueueIO 4096
   fsQueue <- newTBQueueIO 4096
   awaitingClients <- newAwaitingClients
-  withAsync (runHttp evQueue awaitingClients) $ \ha -> do
+  ready <- newEmptyMVar
+  withAsync (runHttp port ready evQueue awaitingClients) $ \ha -> do
     link ha
+    takeMVar ready
     withAsync (fsWorker fsQueue evQueue) $ \fa -> do
       link fa
       go evQueue fsQueue awaitingClients noSuspensions s0
@@ -41,12 +43,12 @@ eventLoop sm s0 decode encode = do
                 atomically (writeTBQueue fsQueue (cid, sid, fsReq))
                 go evQueue fsQueue awaitingClients susps' s
               Right (o, s') -> do
-                respondToAwaitingClient awaitingClients cid (encode o)
-                go evQueue fsQueue awaitingClients susps (s <> s') -- Hmm?
+                respondToAwaitingClient awaitingClients cid (cEncode codec o)
+                go evQueue fsQueue awaitingClients susps (s' <> s) -- Hmm?
 
       case ev of
         ClientRequest cid bs -> do
-          case decode bs of
+          case cDecode codec bs of
             Nothing -> do
               -- XXX: log?
               go evQueue fsQueue awaitingClients susps s
@@ -57,4 +59,5 @@ eventLoop sm s0 decode encode = do
           let (req, susps') = resumeSuspension susps sid
           e <- resumeSM req resp
           handle cid e
+        Reset -> go evQueue fsQueue awaitingClients susps s0
         Exit -> return ()

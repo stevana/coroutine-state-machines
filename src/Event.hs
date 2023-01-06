@@ -11,6 +11,7 @@ type SuspensionId = Int
 data Event
   = ClientRequest ClientId ByteString
   | FileSystemResponse ClientId SuspensionId FSResp
+  | Reset
   | Exit
 
 data FSReq = FSAppend String Int

@@ -12,6 +12,7 @@ import qualified Data.Map as Map
 import Text.Read (readMaybe)
 
 import Coroutine
+import Codec
 import Event
 import EventLoop
 import StateMachine
@@ -21,8 +22,8 @@ import StateMachine
 data Input = Write String Int | Read String
   deriving stock (Show, Read)
 
-data Output = Ok | Result Int
-  deriving stock Show
+data Output = Ok | Result (Maybe Int)
+  deriving stock (Show, Read)
 
 sm :: SM (Map String Int) Input Output
 sm = do
@@ -34,13 +35,17 @@ sm = do
       return Ok
     Read k -> do
       m <- get
-      return (Result (m Map.! k))
+      return (Result (m Map.!? k))
+    -- Cannot have this, non-monotonic.
+    -- Reset -> do
+    --   put Map.empty
+    --   return Ok
 
 -- XXX: return "Future/Async" instead of FSResp directly, `tell` all io actions
 -- and then only suspend when we hit a `waitFor`!
 
-keyValueMain :: IO ()
-keyValueMain = eventLoop sm Map.empty decode encode
+keyValueMain :: Int -> IO ()
+keyValueMain port = eventLoop sm Map.empty (Codec decode encode) port
   where
     decode :: ByteString -> Maybe Input
     decode = readMaybe . LBS8.unpack
