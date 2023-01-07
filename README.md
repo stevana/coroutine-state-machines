@@ -74,8 +74,8 @@ The program looks sequential, but once the state machine hits the `fsAppend` it
 will suspend using a coroutine monad, yielding control back to the event loop
 which feeds it inputs, the event loop will enqueue the I/O action to a separate
 thread that deals with I/O and continue feeding the state machine new inputs,
-until the I/O thread processes a result, at which point the state machine will
-be resumed with the latest state.
+until the I/O thread completes the write to disk, at which point the state
+machine will be resumed with the latest state.
 
 ## Contributing
 
