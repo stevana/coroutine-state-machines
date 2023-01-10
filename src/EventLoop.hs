@@ -38,10 +38,10 @@ eventLoop sm s0 codec port = do
 
       let handle cid e =
             case e of
-              Left req@(Request (fsReq, _i) k) -> do
+              Left (req@(Request (fsReq, _i) k), s') -> do
                 let (sid, susps') = addSuspension susps req
                 atomically (writeTBQueue fsQueue (cid, sid, fsReq))
-                go evQueue fsQueue awaitingClients susps' s
+                go evQueue fsQueue awaitingClients susps' s'
               Right (o, s') -> do
                 respondToAwaitingClient awaitingClients cid (cEncode codec o)
                 go evQueue fsQueue awaitingClients susps s'

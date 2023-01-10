@@ -21,15 +21,15 @@ instance MonadState s (SM s i) where
   get   = SM (lift (lift get))
   put s = SM (lift (lift (put s)))
 
-runSM :: i -> s -> SM s i o -> IO (Either (Request (FSReq, i) FSResp (SM s i o)) (o, s))
+runSM :: i -> s -> SM s i o -> IO (Either (Request (FSReq, i) FSResp (SM s i o), s) (o, s))
 runSM i s sm = do
   e <- runStateT (resume (runReaderT (unSM sm) i)) s
   case e of
-    (Left  (Request fsReq k), s') -> return (Left (Request (fsReq, i) (\fsResp -> SM (lift (k fsResp)))))
+    (Left  (Request fsReq k), s') -> return (Left (Request (fsReq, i) (\fsResp -> SM (lift (k fsResp))), s'))
     (Right o, s')                 -> return (Right (o, s'))
 
 resumeSM :: s -> Request (FSReq, i) FSResp (SM s i o) -> FSResp
-         -> IO (Either (Request (FSReq, i) FSResp (SM s i o)) (o, s))
+         -> IO (Either (Request (FSReq, i) FSResp (SM s i o), s) (o, s))
 resumeSM s (Request (_fsReq, i) k) resp = runSM i s (k resp)
 
 liftCoroutine :: Request FSReq FSResp (SM s i o) -> SM s i o
