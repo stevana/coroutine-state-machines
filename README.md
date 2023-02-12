@@ -108,3 +108,5 @@ change.
 
 * *Development and Deployment of Multiplayer Online Games, Vol. II* by Sergey
   Ignatchenko (2020), especially chapter 5.
+* [*Implementing Co, a Small Language With Coroutines #3: Adding
+  Coroutines*](https://abhinavsarkar.net/posts/implementing-co-3/)
