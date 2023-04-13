@@ -107,6 +107,15 @@ change.
 ## See also
 
 * *Development and Deployment of Multiplayer Online Games, Vol. II* by Sergey
-  Ignatchenko (2020), especially chapter 5.
+  Ignatchenko (2020), especially chapter 5;
 * [*Implementing Co, a Small Language With Coroutines #3: Adding
-  Coroutines*](https://abhinavsarkar.net/posts/implementing-co-3/)
+  Coroutines*](https://abhinavsarkar.net/posts/implementing-co-3/);
+* [*A Lambda Calculus With Coroutines and Heapless, Directly-Called
+  Closures*](https://ayazhafiz.com/articles/23/a-lambda-calculus-with-coroutines-and-heapless-closures);
+* [Small VMs & Coroutines](https://blog.dziban.net/coroutines/);
+* [Tina is a teeny tiny, header only, coroutine and job
+  library](https://github.com/slembcke/Tina);
+* [Protothreads](http://dunkels.com/adam/pt/);
+* [Proactor pattern](https://en.wikipedia.org/wiki/Proactor_pattern);
+* [WebAssembly
+  Reactors](https://github.com/bytecodealliance/wasmtime/blob/main/docs/WASI-rationale.md#why-not-async).
